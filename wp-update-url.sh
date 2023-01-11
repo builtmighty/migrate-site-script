@@ -5,4 +5,18 @@ wp --path=${local_web_root} config set DB_USER ${import_db_user}  --allow-root
 wp --path=${local_web_root} config set DB_PASSWORD ${import_db_pass}  --allow-root
 wp --path=${local_web_root} config set DB_HOST ${import_db_host} --allow-root
 
-wp --path=${local_web_root} search-replace ${remote_domain} ${local_domain} --skip-columns=guid --allow-root;
+# Check if the site is a Multi-site install or not, then run search and replace of the old domain to new
+if $(wp --path=${local_web_root} --url=${remote_domain} core is-installed --network); then
+    echo "Multisite Install FOUND for ${remote_domain}, replacing site URL..";
+    wp search-replace --path=${local_web_root} --url=${remote_domain} ${remote_domain} ${local_domain} --recurse-objects --network --skip-columns=guid --skip-tables=wp_users
+    if [ $(wp --path=${local_web_root} config get 'DOMAIN_CURRENT_SITE') = ${remote_domain} ]
+    then
+        echo "DOMAIN_CURRENT_SITE matches set remote_domain to replace. Updating DOMAIN_CURRENT_SITE in wp-config.php ..";
+        wp --path=${local_web_root} config set DOMAIN_CURRENT_SITE ${local_domain} --allow-root
+    fi
+else
+    echo "Multisite Install NOT found for ${remote_domain}, replacing site URL..";
+    wp search-replace --path=${local_web_root} ${remote_domain} ${local_domain} --recurse-objects --skip-columns=guid --skip-tables=wp_users
+fi
+
+# wp --path=${local_web_root} search-replace ${remote_domain} ${local_domain} --skip-columns=guid --allow-root;
