@@ -1,6 +1,4 @@
 #!/bin/sh
-
-
 red=`tput setaf 1`
 green=`tput setaf 2`
 yellow=`tput setaf 3`
@@ -8,6 +6,14 @@ blue=`tput setaf 4`
 magenta=`tput setaf 5`
 cyan=`tput setaf 6`
 reset=`tput sgr0`
+
+export red;
+export green;
+export yellow;
+export blue;
+export magenta;
+export cyan;
+export reset;
 
 # Import .env.
 export $(grep -v '^#' .env | xargs);
@@ -19,14 +25,14 @@ export $(grep -v '^#' .env | xargs);
 # Optional Steps:
 # ----------------------
 # Clear WEB ROOT of all Files/Directories (Optional)
+# Activate Maintenance Mode
 # Sync Files from Remote Server
-# Clear out WP Engine Specific Configurations and update wp-config with Kinsta DB Credentials
-# Install Kinsta Plugins
 # Migrate Database from Remote Server
 # Update Site URL
-# Activate Maintenance Mode
-# Deactivate Maintenance Mode
+# Clear out WP Engine Specific Configurations in wp-config.php (Only for migrating FROM WP Engine)
+# Install Kinsta Plugins (Only use if migrating TO Kinsta)
 # Refresh Permalinks & Clear All Caches
+# Deactivate Maintenance Mode
 # ==============================================================================
 while true; do
     read -p "
@@ -71,6 +77,17 @@ while true; do
     esac
 done
 
+# Activate Maintenance Mode?
+while true; do
+    read -p "${red}🚧 Activate Maintenance Mode? (Skip step! if you cleared all files) 🚧${reset}? (y/n)" yn
+    case $yn in
+        [Yy]* )
+            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode activate && wp --path=${local_web_root} cache flush && wp --path=${local_web_root} kinsta cache purge;
+            break;;
+        [Nn]* ) break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
 # Sync Files from Remote Server?
 while true; do
@@ -133,18 +150,17 @@ while true; do
     esac
 done
 
-# Activate Maintenance Mode?
+# Refresh Permalinks & Clear All Caches
 while true; do
-    read -p "${red}🚧 Activate Maintenance Mode? 🚧${reset}? (y/n)" yn
+    read -p "${red}🚧 Refresh Permalinks & Clear All Caches? 🚧${reset}? (y/n)" yn
     case $yn in
         [Yy]* )
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode activate && wp --path=${local_web_root} cache flush && wp --path=${local_web_root} kinsta cache purge;
+            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Refreshing Permalinks and 🧹 Clearing WP/Kinsta Caches... \n\n" && source clear-local-cache-refresh-permalinks.sh;
             break;;
         [Nn]* ) break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
-
 
 # Dectivate Maintenance Mode?
 while true; do
@@ -152,18 +168,6 @@ while true; do
     case $yn in
         [Yy]* )
             printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate && wp --path=${local_web_root} cache flush && wp --path=${local_web_root} kinsta cache purge;
-            break;;
-        [Nn]* ) break;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
-
-# Refresh Permalinks & Clear All Caches
-while true; do
-    read -p "${red}🚧 Refresh Permalinks & Clear All Caches? 🚧${reset}? (y/n)" yn
-    case $yn in
-        [Yy]* )
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Refreshing Permalinks and 🧹 Clearing WP/Kinsta Caches... \n\n" && source clear-local-cache-refresh-permalinks.sh;
             break;;
         [Nn]* ) break;;
         * ) echo "Please answer yes or no.";;
