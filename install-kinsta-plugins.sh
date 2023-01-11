@@ -1,0 +1,2 @@
+#!/bin/bash
+curl -O https://kinsta.com/kinsta-tools/kinsta-mu-plugins.zip > kinsta-mu-plugins.zip && mkdir -p ${local_web_root}wp-content/mu-plugins && cp kinsta-mu-plugins.zip ${local_web_root}wp-content/mu-plugins/ && unzip ${local_web_root}wp-content/mu-plugins/kinsta-mu-plugins.zip -d ${local_web_root}wp-content/mu-plugins/ && rm -rf ${local_web_root}wp-content/mu-plugins/kinsta-mu-plugins.zip

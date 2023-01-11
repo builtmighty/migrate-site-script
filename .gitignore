@@ -1,0 +1,30 @@
+# Log files
+*.log
+debug.log
+log.txt
+
+# htaccess
+/.htaccess
+
+# Ignore VSCode Remote Config
+.vscode/
+
+# temp files, OS junk and dotfiles
+*.bak
+*.swp
+*.tmp
+*~
+.cvs
+.DS_Store
+.listing
+.svn
+Thumbs.db
+
+# Ignore Kinsta files
+kinsta-mu-plugins.zip
+
+# Ignore sql files
+*.sql
+
+#Ignore rsync logs
+rsync
