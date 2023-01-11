@@ -5,7 +5,7 @@
 
 1. Clone this repository to your local server.
 2. Fill out the `.env` file with the appropriate values.
-3. Run `./migrate.sh` from the root of the repository.
+3. Run `bash migrate.sh` from the root of the repository.
 
 ## Optional Steps:
 > Each Step in the Script will ask you if you want to run it, you can skip any of the following steps if needed
