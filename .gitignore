@@ -1,5 +1,5 @@
 # Log files
-*.log
+logs/*
 debug.log
 log.txt
 
@@ -26,5 +26,5 @@ kinsta-mu-plugins.zip
 # Ignore sql files
 *.sql
 
-#Ignore rsync logs
-rsync
+# Keep ALL folders with .gitkeep file
+!.gitkeep
