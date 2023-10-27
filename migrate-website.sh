@@ -1,10 +1,13 @@
 #!/bin/sh
-red=`tput setaf 1`
+red=`tput setaf 196`
 green=`tput setaf 2`
 yellow=`tput setaf 3`
-blue=`tput setaf 4`
-magenta=`tput setaf 5`
-cyan=`tput setaf 6`
+blue=`tput setaf 12`
+magenta=`tput setaf 207`
+cyan=`tput setaf 51`
+orange=`tput setaf 208`
+purple=`tput setaf 99`
+grey=`tput setaf 248`
 reset=`tput sgr0`
 SCRIPT_SUMMARY_REPORT="\n\n========================================================\n              📋 Script Summary Report 📋  \n--------------------------------------------------------\n";
 full_script_start_time=$(date +%s);
@@ -14,6 +17,9 @@ export green;
 export yellow;
 export blue;
 export magenta;
+export orange;
+export purple;
+export grey;
 export cyan;
 export reset;
 
@@ -42,9 +48,9 @@ while true; do
 ${red}🧨 !WARNING! 🧨 ${reset} - ${yellow}Backup your site before running${reset} -
 ##################################################################
 
-You will be asked to confirm before each item below is executed:
+You will be asked to confirm before each item below is ${orange}executed${reset}:
 
-${cyan}
+${grey}
 * Clear WEB ROOT of all Files/Directories
 ** WP: Activate Maintenance Mode
 * Sync Files from Remote Server
@@ -57,7 +63,7 @@ ${cyan}
 ${reset}
 ------------------------------------------------------------------
 
-🧯 ARE YOU SURE YOU WANT TO ${yellow}PROCEED${reset} WITH ${red}THE SITE MIGRATION ${reset} 🧯  (y/n)" yn
+🧯 ARE YOU SURE YOU WANT TO ${yellow}PROCEED${reset} WITH ${orange}THE SITE MIGRATION ${reset} 🧯(y/n)" yn
     case $yn in
         [Yy]* )
             break;;
@@ -66,14 +72,15 @@ ${reset}
     esac
 done
 
-
+printf "\n==================================================================\n\n"
 # Clear WEB ROOT of all Files/Directories?
 while true; do
-    read -p "${red}🚧 Clear WEB ROOT (${local_web_root}) of all Files/Directories${reset} in preparation for a full SYNC? (Skip Step if you ONLY want new Files to Sync) 🚧? (y/n)" yn
+    read -p "${red}🚧 Clear WEB ROOT (${reset}${green}${local_web_root}${reset}${red})${reset} of all Files/Directories in preparation for a full SYNC? 🚧
+    ${grey}(Skip Step if you ONLY want new Files to Sync)${reset} (y/n)" yn
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ❌ Clearing WEB ROOT of all Files/Directories ... \n\n" && chmod -R 777 ${local_web_root} && rm -rf ${local_web_root}* && rm -rf ${local_web_root}.* ;
+            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ❌ Clearing WEB ROOT of all Files/Directories ... \n\n" && chmod -R 777 ${local_web_root} && rm -rf ${local_web_root}* && rm -rf ${local_web_root}*.* ;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ WEB ROOT (${local_web_root}) Directory Wiped - Execution Time: ${script_exec_time} seconds";
