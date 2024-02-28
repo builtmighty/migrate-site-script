@@ -28,7 +28,7 @@ while true; do
                     printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3336 -h 127.0.0.1 ${export_db_name} > ${export_db_filename}
                 else
                     echo "👨‍🚀 The DB is on a different server than the web root... Export the DB directly from the remote server"
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3306 -h ${export_external_db_host} ${export_db_name} > ${export_db_filename}
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P${export_external_db_port} -h ${export_external_db_host} ${export_db_name} > ${export_db_filename}
                 fi
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
