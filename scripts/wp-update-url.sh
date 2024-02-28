@@ -4,6 +4,8 @@ wp --path=${local_web_root} config set DB_NAME ${import_db_name} --allow-root --
 wp --path=${local_web_root} config set DB_USER ${import_db_user}  --allow-root --url=%
 wp --path=${local_web_root} config set DB_PASSWORD ${import_db_pass}  --allow-root --url=%
 wp --path=${local_web_root} config set DB_HOST ${import_db_host} --allow-root --url=%
+wp --path=${local_web_root} config delete WP_HOME  --allow-root --url=%
+wp --path=${local_web_root} config delete WP_SITEURL  --allow-root --url=%
 
 # Check if the site is a Multi-site install or not, then run search and replace of the old domain to new
 if $(wp --path=${local_web_root} --url=${remote_domain} core is-installed --network); then
