@@ -26,6 +26,9 @@ export reset;
 # Import .env.
 export $(grep -v '^#' .env | xargs);
 
+echo "Port:"$export_external_db_port
+echo "Host:"$export_external_db_host
+
 # ==============================================================================
 # Migrate Site from Remote Server to Local Server
 

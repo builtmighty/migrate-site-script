@@ -15,15 +15,14 @@ while true; do
     read -p "Do you want to ${green}start${reset} the ${red}Remote${reset} DB migration? (y/n)" yn
     case $yn in
         [Yy]* )
-
-                if [ -z $export_external_db_host ]; then
+                if [[ -z $export_external_db_host || -z $export_external_db_port ]]; then
                     echo "🏰 DB is on the same server as the web root... Create a SSH Tunnel into the server to export the DB"
                     if [ -z $remote_ssh_key ]; then
                         echo "SSH Tunnel: 📝 Using Password"
-                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -f -p ${remote_ssh_port} -L 3336:127.0.0.1:3306 ${remote_ssh_user}@${remote_ssh_host} sleep 20
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -f -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3336:127.0.0.1:3306 ${remote_ssh_user}@${remote_ssh_host} sleep 20
                     else
                         echo "SSH Tunnel: 🔑 Using SSH Key"
-                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -f -i${remote_ssh_key} -p ${remote_ssh_port} -L 3336:127.0.0.1:3306 ${remote_ssh_user}@${remote_ssh_host} sleep 20
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -f -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3336:127.0.0.1:3306 ${remote_ssh_user}@${remote_ssh_host} sleep 20
                     fi
                     printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3336 -h 127.0.0.1 ${export_db_name} > ${export_db_filename}
                 else
