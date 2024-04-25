@@ -102,7 +102,7 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} scripts/maintenance-mode activate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
+            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode activate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Maintenance Mode was Activated - Execution Time: ${script_exec_time} seconds";
@@ -173,18 +173,18 @@ done
 
 # Clear out WP Engine Specific Configurations?
 while true; do
-    read -p "${red}🚧 Clear WP Engine Specific Configurations? 🚧${reset}? (y/n)" yn
+    read -p "${red}🚧 Skip Clearing WP Engine Specific Configurations? 🚧${reset}? (y/n)" yn
     case $yn in
         [Yy]* )
+            SCRIPT_SUMMARY_REPORT+="\n - ❌ Removing WP Engine Specific Configurations was Skipped";
+            break;;
+            break;;
+        [Nn]* )
             script_start_time=$(date +%s);
             printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📂 Clearing out WP Engine Specific Configurations ... \n\n" source sh scripts/clean-wpe-dependant-configs.sh;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ WP Engine Specific Configurations Cleared! - Execution Time: ${script_exec_time} seconds";
-            break;;
-        [Nn]* )
-            SCRIPT_SUMMARY_REPORT+="\n - ❌ Removing WP Engine Specific Configurations was Skipped";
-            break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
@@ -192,17 +192,17 @@ done
 printf "\n"
 # Install Kinsta Plugins ?
 while true; do
-    read -p "🚧 Install Kinsta Plugins? 🚧? (y/n)" yn
+    read -p "🚧 Skip Installing Kinsta Plugins? 🚧? (y/n)" yn
     case $yn in
         [Yy]* )
+            SCRIPT_SUMMARY_REPORT+="\n - ❌ Kinsta Plugins Installation was Skipped";
+            break;;
+        [Nn]* )
             script_start_time=$(date +%s);
             printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🔌 Install Kinsta Plugins ... \n\n" && source scripts/install-kinsta-plugins.sh ;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Installed Kinsta Plugins - Execution Time: ${script_exec_time} seconds";
-            break;;
-        [Nn]* )
-            SCRIPT_SUMMARY_REPORT+="\n - ❌ Kinsta Plugins Installation was Skipped";
             break;;
         * ) echo "Please answer yes or no.";;
     esac
