@@ -78,18 +78,18 @@ done
 printf "\n==================================================================\n\n"
 # Clear WEB ROOT of all Files/Directories?
 while true; do
-    read -p "${red}🚧 Clear WEB ROOT (${reset}${green}${local_web_root}${reset}${red})${reset} of all Files/Directories in preparation for a full SYNC? 🚧
+    read -p "${red}🚧 SKIP Clearing WEB ROOT (${reset}${green}${local_web_root}${reset}${red})${reset} of all Files/Directories in preparation for a full SYNC? 🚧
     ${grey}(Skip Step if you ONLY want new Files to Sync)${reset} (y/n)" yn
     case $yn in
         [Yy]* )
+            SCRIPT_SUMMARY_REPORT+="\n - ❌ Skipped Clearing WEB ROOT of all Files/Directories ";
+            break;;
+        [Nn]* )
             script_start_time=$(date +%s);
             printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ❌ Clearing WEB ROOT of all Files/Directories ... \n\n" && chmod -R 777 ${local_web_root} && rm -rf ${local_web_root}* && rm -rf ${local_web_root}*.* ;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ WEB ROOT (${local_web_root}) Directory Wiped - Execution Time: ${script_exec_time} seconds";
-            break;;
-        [Nn]* )
-            SCRIPT_SUMMARY_REPORT+="\n - ❌ WP MEDIA File Sync from Remote Server Skipped ";
             break;;
         * ) echo "Please answer yes or no.";;
     esac
@@ -102,7 +102,7 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} scripts/maintenance-mode activate && wp --path=${local_web_root} cache flush && wp --path=${local_web_root} kinsta cache purge;
+            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} scripts/maintenance-mode activate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Maintenance Mode was Activated - Execution Time: ${script_exec_time} seconds";
@@ -232,7 +232,7 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate && wp --path=${local_web_root} cache flush && wp --path=${local_web_root} kinsta cache purge;
+            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate --allow-root && wp --path=${local_web_root} cache flush --allow-root && wp --path=${local_web_root} kinsta cache purge --allow-root;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Maintenance Mode Deactivated - Execution Time: ${script_exec_time} seconds";
