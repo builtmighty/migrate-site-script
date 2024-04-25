@@ -178,13 +178,13 @@ while true; do
         [Yy]* )
             SCRIPT_SUMMARY_REPORT+="\n - ❌ Removing WP Engine Specific Configurations was Skipped";
             break;;
-            break;;
         [Nn]* )
             script_start_time=$(date +%s);
             printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📂 Clearing out WP Engine Specific Configurations ... \n\n" source sh scripts/clean-wpe-dependant-configs.sh;
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ WP Engine Specific Configurations Cleared! - Execution Time: ${script_exec_time} seconds";
+            break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
