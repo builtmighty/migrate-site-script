@@ -66,7 +66,7 @@ ${grey}
 ${reset}
 ------------------------------------------------------------------
 
-🧯 ARE YOU SURE YOU WANT TO ${yellow}PROCEED${reset} WITH ${orange}THE SITE MIGRATION ${reset} 🧯(y/n)" yn
+🧯 ARE YOU SURE YOU WANT TO ${yellow}PROCEED${reset} WITH ${orange}THE SITE MIGRATION for: ${platform} ${reset} 🧯(y/n)" yn
     case $yn in
         [Yy]* )
             break;;
@@ -102,9 +102,9 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            if [[ $platform_env == "wordpress" ]]; then
+            if [[ $platform == "wordpress" ]]; then
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode activate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
-            elif [[ $platform_env == "laravel" ]]; then
+            elif [[ $platform == "laravel" ]]; then
                 echo "Laravel platform detected. Skipping maintenance mode activation.";
             else
                 echo "Unknown platform. Skipping maintenance mode activation.";
@@ -165,9 +165,9 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            if [[ $platform_env == "wordpress" ]]; then
+            if [[ $platform == "wordpress" ]]; then
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📍 Updating Remote Site URL to Local URL... \n\n" && source scripts/wp-update-url.sh;
-            elif [[ $platform_env == "laravel" ]]; then
+            elif [[ $platform == "laravel" ]]; then
                 echo "Laravel platform detected. Update Configs and URL's.";
             else
                 echo "Unknown platform. Skipping Config and URL Updates.";
@@ -226,9 +226,9 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            if [[ $platform_env == "wordpress" ]]; then
+            if [[ $platform == "wordpress" ]]; then
                  printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Refreshing Permalinks and 🧹 Clearing WP/Kinsta Caches... \n\n" && source scripts/clear-local-cache-refresh-permalinks.sh;
-            elif [[ $platform_env == "laravel" ]]; then
+            elif [[ $platform == "laravel" ]]; then
                 echo "Laravel platform detected. Clearing All Caches.";
             else
                 echo "Unknown platform.  Skip Clear All Caches.";
@@ -250,9 +250,9 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            if [[ $platform_env == "wordpress" ]]; then
+            if [[ $platform == "wordpress" ]]; then
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
-            elif [[ $platform_env == "laravel" ]]; then
+            elif [[ $platform == "laravel" ]]; then
                 echo "Laravel platform detected. Skipping maintenance mode deactivation.";
             else
                 echo "Unknown platform. Skipping maintenance mode deactivation.";
