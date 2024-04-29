@@ -102,7 +102,13 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode activate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
+            if [[ $platform_env == "wordpress" ]]; then
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode activate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
+            elif [[ $platform_env == "laravel" ]]; then
+                echo "Laravel platform detected. Skipping maintenance mode activation.";
+            else
+                echo "Unknown platform. Skipping maintenance mode activation.";
+            fi
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Maintenance Mode was Activated - Execution Time: ${script_exec_time} seconds";
@@ -159,7 +165,13 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📍 Updating Remote Site URL to Local URL... \n\n" && source scripts/wp-update-url.sh;
+            if [[ $platform_env == "wordpress" ]]; then
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📍 Updating Remote Site URL to Local URL... \n\n" && source scripts/wp-update-url.sh;
+            elif [[ $platform_env == "laravel" ]]; then
+                echo "Laravel platform detected. Update Configs and URL's.";
+            else
+                echo "Unknown platform. Skipping Config and URL Updates.";
+            fi
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ WP Config and Site URL updated - Execution Time: ${script_exec_time} seconds";
@@ -214,7 +226,13 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Refreshing Permalinks and 🧹 Clearing WP/Kinsta Caches... \n\n" && source scripts/clear-local-cache-refresh-permalinks.sh;
+            if [[ $platform_env == "wordpress" ]]; then
+                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Refreshing Permalinks and 🧹 Clearing WP/Kinsta Caches... \n\n" && source scripts/clear-local-cache-refresh-permalinks.sh;
+            elif [[ $platform_env == "laravel" ]]; then
+                echo "Laravel platform detected. Clearing All Caches.";
+            else
+                echo "Unknown platform.  Skip Clear All Caches.";
+            fi
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Refreshed Permalinks and Cleared WP/Kinsta Caches - Execution Time: ${script_exec_time} seconds";
@@ -232,7 +250,13 @@ while true; do
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
-            printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate --allow-root && wp --path=${local_web_root} cache flush --allow-root && wp --path=${local_web_root} kinsta cache purge --allow-root;
+            if [[ $platform_env == "wordpress" ]]; then
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
+            elif [[ $platform_env == "laravel" ]]; then
+                echo "Laravel platform detected. Skipping maintenance mode deactivation.";
+            else
+                echo "Unknown platform. Skipping maintenance mode deactivation.";
+            fi
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
             SCRIPT_SUMMARY_REPORT+="\n - ✅ Maintenance Mode Deactivated - Execution Time: ${script_exec_time} seconds";
