@@ -255,7 +255,7 @@ while true; do
             if [[ $platform == "wordpress" ]]; then
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode... \n\n" && wp --path=${local_web_root} maintenance-mode deactivate --allow-root && wp --path=${local_web_root} cache flush --allow-root;
             elif [[ $platform == "laravel" ]]; then
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Activating Maintenance Mode for $platform ... \n\n" && php ${local_web_root}artisan up --retry=60;
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🚧 Dectivating Maintenance Mode for $platform ... \n\n" && php ${local_web_root}artisan up;
             else
                 echo "Unknown platform. Skipping maintenance mode deactivation.";
             fi
