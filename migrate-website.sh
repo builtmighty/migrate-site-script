@@ -161,7 +161,7 @@ done
 printf "\n"
 # Update WP Config and Site URL?
 while true; do
-    read -p "🚧 ${orange}Update WP Configs${reset} and Site URL? 🚧? (y/n)" yn
+    read -p "🚧 ${orange}Update Application Configs${reset} and Site URL? 🚧? (y/n)" yn
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
@@ -169,6 +169,7 @@ while true; do
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📍 Updating Remote Site URL to Local URL... \n\n" && source scripts/wp-update-url.sh;
             elif [[ $platform == "laravel" ]]; then
                 echo "Laravel platform detected. Update Configs and URL's.";
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 📍 Updating Laravel Configurations... \n\n" && source scripts/laravel-config.sh;
             else
                 echo "Unknown platform. Skipping Config and URL Updates.";
             fi
@@ -230,6 +231,7 @@ while true; do
                  printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Refreshing Permalinks and 🧹 Clearing WP/Kinsta Caches... \n\n" && source scripts/clear-local-cache-refresh-permalinks.sh;
             elif [[ $platform == "laravel" ]]; then
                 echo "Laravel platform detected. Clearing All Caches.";
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>>  🧼 Cleaning Config and Application Caches... \n\n" && php ${local_web_root}artisan optimize:clear;
             else
                 echo "Unknown platform.  Skip Clear All Caches.";
             fi
