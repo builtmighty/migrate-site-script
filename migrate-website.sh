@@ -69,6 +69,8 @@ ${reset}
 🧯 ARE YOU SURE YOU WANT TO ${yellow}PROCEED${reset} WITH ${orange}THE SITE MIGRATION for: ${platform} ${reset} 🧯(y/n)" yn
     case $yn in
         [Yy]* )
+            SCRIPT_SUMMARY_REPORT+="\n\n🚀 Site Migration Started for: ${platform} 🚀";
+            apt install -y pv;
             break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;
