@@ -15,29 +15,53 @@ while true; do
     read -p "Do you want to ${green}start${reset} the ${red}Remote${reset} DB migration? (y/n)" yn
     case $yn in
         [Yy]* )
-                if [[ -z $export_external_db_host || -z $export_external_db_port ]]; then
-                    echo "🏰 DB is on the same server as the web root... Create a SSH Tunnel into the server to export the DB"
-                    if [ -z $remote_ssh_key ]; then
-                        echo "SSH Tunnel: 📝 Using Password"
-                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -f -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3336:127.0.0.1:3306 ${remote_ssh_user}@${remote_ssh_host} sleep 20
-                    else
-                        echo "SSH Tunnel: 🔑 Using SSH Key"
-                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -f -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3336:127.0.0.1:3306 ${remote_ssh_user}@${remote_ssh_host} sleep 20
-                    fi
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3336 -h 127.0.0.1 ${export_db_name} > ${export_db_filename}
+                # Initialize the --ignore-table options string
+                IGNORE_TABLES_STRING=""
+
+                # Read the exclude tables file and construct the --ignore-table options
+                while IFS= read -r TABLE
+                do
+                    echo "  - 🙈 Ignoring Table: ${TABLE}"
+                    IGNORE_TABLES_STRING+=" --ignore-table=${DB_NAME}.${TABLE}"
+                done < ${export_external_exlude_tables_file}
+
+                # Setting up SSH Tunnel for DB Connection using SSH Key on port 3337
+                if [ -z $remote_ssh_key ]; then
+                    echo "🚇 SSH Tunnel to DB: 📝 Using Password"
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -4 -f -N -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_external_db_host}:${export_external_db_port} ${remote_ssh_user}@${remote_ssh_host}
                 else
-                    echo "👨‍🚀 The DB is on a different server than the web root... Export the DB directly from the remote server \n\n"
-                    echo "Setting up SSH Tunnel: 🔑 Using SSH Key"
-                    ssh -f -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_external_db_host}:${export_external_db_port} ${remote_ssh_user}@${remote_ssh_host} sleep 20 && \
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} > ${export_db_filename}
+                    echo "🚇 SSH Tunnel to DB: 🔑 Using SSH Key"
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -4 -f -N -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_external_db_host}:${export_external_db_port} ${remote_ssh_user}@${remote_ssh_host}
                 fi
+
+                # Capture the SSH Tunnel PID
+                SSH_PID=$!
+                echo "SSH Tunnel PID: ${SSH_PID}";
+
+                # Dump the database structure without data
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && mysqldump -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
+
+                # Dump the data excluding specified tables
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
+                eval mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v > db_data.sql
+
+                # Combine the structure and data dumps
+                cat db_structure.sql db_data.sql > ${export_db_filename}
+
+                # Clean up intermediate files
+                rm db_structure.sql db_data.sql
+
+                echo "Database dump completed and saved to ${export_db_filename}. 🚇 Closing SSH Tunnel..."
+                # Kill the SSH process
+                kill $SSH_PID
+
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🥳 Database Migration Complete! \n\n"; break;
 
-                break;;
-
-        [Nn]* ) break;;
+            break;;
+        [Nn]* )
+            break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
