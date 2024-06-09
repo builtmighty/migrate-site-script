@@ -34,6 +34,9 @@ while true; do
                     printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -4 -f -N -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
                 fi
 
+                # Wait for SSH tunnel to connect
+                while ! nc -z localhost 3337; do sleep 1; done
+
                 # Capture the SSH Tunnel PID
                 SSH_TUNNEL_PID=$(lsof -t -i:3337);
                 echo "🚇 SSH Tunnel PID: ${SSH_TUNNEL_PID}";
