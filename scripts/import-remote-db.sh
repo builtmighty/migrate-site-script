@@ -15,6 +15,9 @@ while true; do
     read -p "Do you want to ${green}start${reset} the ${red}Remote${reset} DB migration? (y/n)" yn
     case $yn in
         [Yy]* )
+                # Install netcat if not already installed
+                apt install -y netcat;
+
                 # Initialize the --ignore-table options string
                 IGNORE_TABLES_STRING=""
 
