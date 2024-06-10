@@ -45,7 +45,8 @@ while true; do
                 echo "🚇 SSH Tunnel PID: ${SSH_TUNNEL_PID}";
 
                 # Dump the database structure without data
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && mysqldump -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
+                mysqldump -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
 
                 # Dump the data excluding specified tables
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
@@ -61,8 +62,21 @@ while true; do
                 printf "\n Database dump completed and saved to ${export_db_filename}. \n🚇 Closing SSH Tunnel...\n\n"
                 kill -9 $SSH_TUNNEL_PID
 
+                # Improve the Import Process by adding the following to the SQL file:
+                echo "Optimizing the SQL file for Quicker Import...
+                - autocommit=0;
+                - unique_checks=0;
+                - foreign_key_checks=0;"
+                sed -i '1i\
+                SET GLOBAL net_buffer_length = 1000000;\
+                SET GLOBAL max_allowed_packet = 1000000000;\
+                SET autocommit=0;\
+                SET unique_checks=0;\
+                SET foreign_key_checks=0;' ${export_db_filename};
+                echo -e "SET unique_checks=1;\nSET foreign_key_checks=1;\nCOMMIT;" >> flexpro-db-bck.sql;
+
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -v -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🥳 Database Migration Complete! \n\n"; break;
 
             break;;
