@@ -161,9 +161,13 @@ while true; do
 done
 
 printf "\n"
-# Update WP Config and Site URL?
+# Update Application Configs?
 while true; do
-    read -p "🚧 ${orange}Update Application Configs${reset} and Site URL? 🚧? (y/n)" yn
+    if [ "$skip_app_config" != "true" ]; then
+        read -p "🚧 ${orange}Update Application Configs${reset} and Site URL? 🚧? (y/n)" yn
+    else
+        yn="n"
+    fi
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
@@ -177,10 +181,10 @@ while true; do
             fi
             script_end_time=$(date +%s);
             script_exec_time=$((script_end_time - script_start_time));
-            SCRIPT_SUMMARY_REPORT+="\n - ✅ WP Config and Site URL updated - Execution Time: ${script_exec_time} seconds";
+            SCRIPT_SUMMARY_REPORT+="\n - ✅ Application Config and Site URL updated - Execution Time: ${script_exec_time} seconds";
             break;;
         [Nn]* )
-            SCRIPT_SUMMARY_REPORT+="\n - ❌  WP Config and Site URL updates were Skipped";
+            SCRIPT_SUMMARY_REPORT+="\n - ❌  Application Config and Site URL updates were Skipped";
             break;;
         * ) echo "Please answer yes or no.";;
     esac
