@@ -76,7 +76,7 @@ while true; do
                 echo -e "SET unique_checks=1;\nSET foreign_key_checks=1;\nCOMMIT;" >> flexpro-db-bck.sql;
 
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -v -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🥳 Database Migration Complete! \n\n"; break;
 
             break;;
