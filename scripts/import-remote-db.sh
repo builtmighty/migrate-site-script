@@ -16,7 +16,7 @@ while true; do
     case $yn in
         [Yy]* )
                 # Install netcat if not already installed
-                apt install -y netcat;
+                # apt install -y netcat;
 
                 # Initialize the --ignore-table options string
                 IGNORE_TABLES_STRING=""
@@ -38,7 +38,8 @@ while true; do
                 fi
 
                 # Wait for SSH tunnel to connect
-                while ! nc -z localhost 3337; do sleep 1; done
+                # while ! nc -z localhost 3337; do sleep 1; done
+                while ! (echo > /dev/tcp/localhost/3337) >/dev/null 2>&1; do sleep 1; done
 
                 # Capture the SSH Tunnel PID
                 SSH_TUNNEL_PID=$(lsof -t -i:3337);
