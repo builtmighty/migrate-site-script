@@ -45,19 +45,29 @@ while true; do
                 SSH_TUNNEL_PID=$(lsof -t -i:3337);
                 echo "🚇 SSH Tunnel PID: ${SSH_TUNNEL_PID}";
 
-                # Dump the database structure without data
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
-                mysqldump -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
+                # Read the contents of the file into a variable
+                file_contents=$(cat db-tables-exclude.txt)
 
-                # Dump the data excluding specified tables
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
-                eval mysqldump --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v > db_data.sql
+                # Check if the contents match "no_tables_ignored"
+                if [ "$file_contents" == "no_tables_ignored" ]; then
+                    # Dump the whole database
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && \
+                    mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > ${export_db_filename}
+                else
+                    # Dump the database structure without data
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
+                    mysqldump -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
 
-                # Combine the structure and data dumps
-                cat db_structure.sql db_data.sql > ${export_db_filename}
+                    # Dump the data excluding specified tables
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
+                    eval mysqldump --quick --single-transaction --compress --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > db_data.sql
 
-                # Clean up intermediate files
-                rm db_structure.sql db_data.sql
+                    # Combine the structure and data dumps
+                    cat db_structure.sql db_data.sql > ${export_db_filename}
+
+                    # Clean up intermediate files
+                    rm db_structure.sql db_data.sql
+                fi
 
                 # Kill the SSH Tunnel Process
                 printf "\n Database dump completed and saved to ${export_db_filename}. \n🚇 Closing SSH Tunnel...\n\n"
@@ -73,8 +83,9 @@ while true; do
                 SET GLOBAL max_allowed_packet = 1000000000;\
                 SET autocommit=0;\
                 SET unique_checks=0;\
-                SET foreign_key_checks=0;' ${export_db_filename};
-                echo -e "SET unique_checks=1;\nSET foreign_key_checks=1;\nCOMMIT;" >> flexpro-db-bck.sql;
+                SET foreign_key_checks=0;\
+                START TRANSACTION;' ${export_db_filename};
+                echo -e "SET unique_checks=1;\nSET foreign_key_checks=1;\nCOMMIT;" >> ${export_db_filename};
 
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && mysql -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} < ${export_db_filename} &&  \
