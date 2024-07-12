@@ -71,6 +71,7 @@ ${reset}
         [Yy]* )
             SCRIPT_SUMMARY_REPORT+="\n\n🚀 Site Migration Started for: ${platform} 🚀";
             apt install -y pv;
+            apt install -y sshpass;
             break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;

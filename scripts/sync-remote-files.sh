@@ -6,7 +6,7 @@ echo "Total Files to Transfer: ${num_files}"
 
 if [ -z $remote_ssh_key ]; then
     echo "SSH: 📝 Using Password"
-    mkdir -p -v ./logs/rsync && rsync -trhv --stats --ignore-existing --exclude-from=${rsync_exclude_file_path} --exclude '*.sql' --exclude='.git/' -e "ssh -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root} ${local_web_root} --log-file=./logs/rsync/${rsync_log_filename} | pv -lpes $num_files > /dev/null
+    mkdir -p -v ./logs/rsync && rsync -trhv --stats --ignore-existing --exclude-from=${rsync_exclude_file_path} --exclude '*.sql' --exclude='.git/' -e "sshpass -p ${remote_ssh_pass} ssh -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root} ${local_web_root} --log-file=./logs/rsync/${rsync_log_filename} | pv -lpes $num_files > /dev/null
 
 else
     echo "SSH: 🔑 Using SSH Key"

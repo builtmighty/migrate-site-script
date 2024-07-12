@@ -31,10 +31,10 @@ while true; do
                 # Setting up SSH Tunnel for DB Connection using SSH Key on port 3337
                 if [ -z $remote_ssh_key ]; then
                     echo "🚇 SSH Tunnel to DB: 📝 Using Password"
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -4 -f -N -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel with Key for DB Connection... \n\n" && ssh -4 -f -N -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
                 else
                     echo "🚇 SSH Tunnel to DB: 🔑 Using SSH Key"
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel for DB Connection... \n\n" && ssh -4 -f -N -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
+                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel with Password for DB Connection... \n\n" && sshpass -p ${remote_ssh_pass} ssh -4 -f -N -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
                 fi
 
                 # Wait for SSH tunnel to connect
