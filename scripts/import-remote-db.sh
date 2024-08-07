@@ -46,7 +46,7 @@ while true; do
                 echo "🚇 SSH Tunnel PID: ${SSH_TUNNEL_PID}";
 
                 # Read the contents of the file into a variable
-                file_contents=$(cat db-tables-exclude.txt)
+                file_contents=$(cat $db_exclude_tables_file_path);
 
                 # Check if the contents match "no_tables_ignored"
                 if [ "$file_contents" == "no_tables_ignored" ]; then
