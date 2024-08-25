@@ -126,7 +126,11 @@ done
 printf "\n"
 # Sync Files from Remote Server?
 while true; do
-    read -p "${green}🚧 Sync Files${reset} from Remote Server? 🚧? (y/n)" yn
+    if [ $skip_file_sync != "true" ]; then
+        read -p "${green}🚧 Sync Files${reset} from Remote Server? 🚧? (y/n)" yn
+    else
+        yn="n"
+    fi
     case $yn in
         [Yy]* )
             printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Syncing Files from Remote Server ... \n\n" && source scripts/sync-remote-files.sh ;
@@ -145,7 +149,11 @@ done
 printf "\n"
 # Migrate Database from Remote Server ?
 while true; do
-    read -p "🚧 ${magenta}Migrate Database${reset} from Remote Server? 🚧? (y/n)" yn
+    if [ $skip_db_import != "true" ]; then
+        read -p "🚧 ${magenta}Migrate Database${reset} from Remote Server? 🚧? (y/n)" yn
+    else
+        yn="n"
+    fi
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
