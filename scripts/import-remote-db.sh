@@ -37,13 +37,14 @@ while true; do
                     printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel with Key for DB Connection... \n\n" && ssh -4 -f -N -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
                 fi
 
-                # Wait for SSH tunnel to connect
-                # while ! nc -z localhost 3337; do sleep 1; done
-                while ! (echo > /dev/tcp/localhost/3337) >/dev/null 2>&1; do sleep 1; done
-
-                # Capture the SSH Tunnel PID
-                SSH_TUNNEL_PID=$(lsof -t -i:3337);
-                echo "🚇 SSH Tunnel PID: ${SSH_TUNNEL_PID}";
+                # Create SSH Tunnel if config is set to true
+                if [ $db_ssh_tunnels == "true" ]; then
+                    # Wait for SSH tunnel to connect
+                    while ! (echo > /dev/tcp/localhost/3337) >/dev/null 2>&1; do sleep 1; done
+                    # Capture the SSH Tunnel PID
+                    SSH_TUNNEL_PID=$(lsof -t -i:3337);
+                    echo "🚇 SSH Tunnel PID: ${SSH_TUNNEL_PID}";
+                fi
 
                 # Read the contents of the file into a variable
                 file_contents=$(cat $db_exclude_tables_file_path);
@@ -52,15 +53,44 @@ while true; do
                 if [ "$file_contents" == "no_tables_ignored" ]; then
                     # Dump the whole database
                     printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Export Started... \n\n" && \
-                    mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > ${export_db_filename}
+                    # Check if the DB Export should be done with SSH Tunnel
+                    if [ $db_ssh_tunnels == "true" ]; then
+                        echo "🚇 Exporting the Database with SSH Tunnel..."
+                        mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > ${export_db_filename}
+                    else
+                        echo "🏰 Exporting the Database without SSH Tunnel... DB Export will happen directly on the Remote Server"
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p${export_db_pass} -P${export_db_port} -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > ${export_db_filename}"
+                        echo "Copying the database file to the local machine.."
+                        rsync -avz --ignore-existing -e "ssh -i${remote_ssh_key} -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root}/${export_db_filename} /root/migrate-site-script/
+                        echo "Removing the file from the remote machine for safety.."
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && rm ${export_db_filename}"
+                    fi
                 else
-                    # Dump the database structure without data
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
-                    mysqldump -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
-
-                    # Dump the data excluding specified tables
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
-                    eval mysqldump --quick --single-transaction --compress --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > db_data.sql
+                    if [ $db_ssh_tunnels == "true" ]; then
+                        echo "🚇 Exporting the Database with SSH Tunnel..."
+                        # Dump the database structure without data
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
+                        mysqldump --quick --single-transaction --compress -v -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
+                        # Dump the data excluding specified tables
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
+                        eval mysqldump --quick --single-transaction --compress --no-tablespaces -u ${export_db_user} -p${export_db_pass} -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > db_data.sql
+                    else
+                        echo "🏰 Exporting the Database without SSH Tunnel... DB Export will happen directly on the Remote Server"
+                        # Dump the database structure without data
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p${export_db_pass} -P${export_db_port} -h 127.0.0.1 ${export_db_name} > db_structure.sql"
+                        # Dump the data excluding specified tables
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p${export_db_pass} -P${export_db_port} -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > db_data.sql"
+                        echo "Copying the database files to the local machine.."
+                        rsync -avz --ignore-existing -e "ssh -i${remote_ssh_key} -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+                            --include="db_structure.sql" \
+                            --include="db_data.sql" \
+                            --exclude="*" \
+                        ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root}/ /root/migrate-site-script/
+                        echo "Removing the files from the remote machine for safety.."
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && rm db_structure.sql && rm db_data.sql"
+                    fi
 
                     # Combine the structure and data dumps
                     cat db_structure.sql db_data.sql > ${export_db_filename}
@@ -70,8 +100,11 @@ while true; do
                 fi
 
                 # Kill the SSH Tunnel Process
-                printf "\n Database dump completed and saved to ${export_db_filename}. \n🚇 Closing SSH Tunnel...\n\n"
-                kill -9 $SSH_TUNNEL_PID
+                printf "\n Database dump completed and saved to ${export_db_filename}. \n"
+                if [ $db_ssh_tunnels == "true" ]; then
+                    printf "🚇 Closing SSH Tunnel...\n\n"
+                    kill -9 $SSH_TUNNEL_PID
+                fi
 
                 # Improve the Import Process by adding the following to the SQL file:
                 echo "Optimizing the SQL file for Quicker Import...
