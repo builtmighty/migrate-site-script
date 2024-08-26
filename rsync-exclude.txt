@@ -28,3 +28,4 @@ ehthumbs.db
 ./wp-content/cache/
 ./wp-content/uploads/wp-clone/
 ./iworx-backup/*
+.devcontainer

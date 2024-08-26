@@ -28,10 +28,50 @@
 - **RSYNC:** The migrate script uses `rsync` to sync files from the remote server to the local server. We have included a progress bar feature for the file sync progress as well as a log of all the syned files within the `/logs` directory
 - **DB IMPORT/EXPORT:** The script uses `mysqldump` to export the database from the remote server and `mysql` to import the database to the local server. The DB export process uses a SSH Tunnel to connect to the remote server and export the database. If the MySQL Database lives on the same server as the Web Server, you can set the `export_db_host` .env var to `127.0.0.1` and the script will export the database direclty from the Web Server. If the MySQL Database lives on a different server, you can set the `export_db_host` .env var to the IP of the External MySQL Server.
 - **Exclude Files:** The script uses a `rsync-exclude.txt` file to exclude files and directories from the rsync process. This file is located in the root of the repository. You can add any files or directories you want to exclude from the rsync process to this file.
+  - <details>
+	<summary>Default files excluded:</summary>
+
+	```bash
+	*.log
+	*.sql
+	*.sqlite
+	*.sqlite3
+	*.7z
+	*.dmg
+	*.gz
+	*.iso
+	*.jar
+	*.rar
+	*.tar
+	*.zip
+	*.swp
+	*.swo
+	*.tmproj
+	*.tmproject
+	.DS_Store
+	.DS_Store?
+	._*
+	.Spotlight-V100
+	.Trashes
+	ehthumbs.db
+	*[Tt]humbs.db
+	*.Trashes
+	.modgit/
+	./wp-content/mysql-dumps
+	./wp-content/wfcache/
+	./wp-content/cache/
+	./wp-content/uploads/wp-clone/
+	./iworx-backup/*
+	.devcontainer
+	```
+  </details>
+
 - **Exclude DB Tables:** The script uses a `db-tables-exclude.txt` file to exclude tables from the database export/import process. This file is located in the root of the repository. You can add any tables you want to exclude from the database export/import process to this file.
 - **Exclude Tables from WP Search Replace:** The script uses a `wp-search-replace-exclude.txt` file to exclude tables from the WP Search Replace process. This file is located in the root of the repository. You can add any tables you want to exclude from the WP Search Replace process to this file and it already comes with a suggested list of tables to be skipped.
-  - **Default Tables skipped by wp search-replace:**
-	```
+  - <details>
+	<summary>Default Tables skipped by wp search-replace:</summary>
+
+	```bash
 	*_links (WordPress Links, often unused)
 	*_commentmeta (WordPress comment metadata)
 	*_comments (WordPress comments)
@@ -49,6 +89,7 @@
 	*_gf_* (Gravity Forms)
 	*_mailpoet_statistics* (MailPoet)
 	```
+  </details>
 
 ## ENV File Explained:
 
@@ -78,3 +119,12 @@
 ### Exclusions:
 - `rsync_exclude`: Enter the path to the file containing the list of files/directories to exclude from the rsync process
 - `db_tables_exclude`: Enter the path to the file containing the list of tables to exclude from the database export/import process
+
+### Platform:
+- `platform`: Enter the platform of the website (Options: *wordpress* | *laravel*)
+- `wp_search_replace_exclude_file_path` : Enter the path to the file containing the list of tables to exclude from the WP Search Replace process if the platform is set to `wordpress`
+
+### Migration Steps (Skip if needed):
+- `skip_app_config`: Skip the step that updates the app/platform configuration (Default: *false*)
+- `skip_db_import`: Skip the step to migrate the database from the remote server (Default: *false*)
+- `skip_file_sync`: Skip the step to sync files from the remote server (Default: *false*)
