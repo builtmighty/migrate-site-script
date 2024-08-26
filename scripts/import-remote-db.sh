@@ -28,14 +28,16 @@ while true; do
                     IGNORE_TABLES_STRING+=" --ignore-table=${DB_NAME}.${TABLE}"
                 done < ${db_exclude_tables_file_path}
 
-                # Setting up SSH Tunnel for DB Connection using SSH Key on port 3337
-                if [ -z $remote_ssh_key ]; then
-                    echo "🚇 SSH Tunnel to DB: 📝 Using Password"
-                    printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel with Password for DB Connection... \n\n" && sshpass -p ${remote_ssh_pass} ssh -4 -f -N -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
-                fi
-
                 # Create SSH Tunnel if config is set to true
                 if [ $db_ssh_tunnels == "true" ]; then
+                    # Setting up SSH Tunnel for DB Connection using SSH Key on port 3337
+                    if [ -z $remote_ssh_key ]; then
+                        echo "🚇 SSH Tunnel to DB: 📝 Using Password"
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel with Password for DB Connection... \n\n" && sshpass -p ${remote_ssh_pass} ssh -4 -f -N -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
+                    else
+                        echo "🚇 SSH Tunnel to DB: 🔑 Using SSH Key"
+                        printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🚇 Creating SSH Tunnel with Key for DB Connection... \n\n" && ssh -4 -f -N -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -L 3337:${export_db_host}:${export_db_port} ${remote_ssh_user}@${remote_ssh_host} &
+                    fi
                     # Wait for SSH tunnel to connect
                     while ! (echo > /dev/tcp/localhost/3337) >/dev/null 2>&1; do sleep 1; done
                     # Capture the SSH Tunnel PID
