@@ -55,10 +55,10 @@ while true; do
                     # Check if the DB Export should be done with SSH Tunnel
                     if [ $db_ssh_tunnels == "true" ]; then
                         echo "🚇 Exporting the Database with SSH Tunnel..."
-                        mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P3337 -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > ${export_db_filename}
+                        mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P3337 -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' | sed '/enable the sandbox mode/d' > ${export_db_filename}
                     else
                         echo "🏰 Exporting the Database without SSH Tunnel... DB Export will happen directly on the Remote Server"
-                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > ${export_db_filename}"
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g | sed '/enable the sandbox mode/d' > ${export_db_filename}"
                         echo "Copying the database file to the local machine.."
                         rsync -avz --ignore-existing -e "ssh -i${remote_ssh_key} -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root}/${export_db_filename} /root/migrate-site-script/
                         echo "Removing the file from the remote machine for safety.."
@@ -72,7 +72,7 @@ while true; do
                         mysqldump --quick --single-transaction --compress -v -u ${export_db_user} -p'${export_db_pass}' -P3337 -h 127.0.0.1 --no-data ${export_db_name} > db_structure.sql
                         # Dump the data excluding specified tables
                         printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
-                        eval mysqldump --quick --single-transaction --compress --no-tablespaces -u ${export_db_user} -p'${export_db_pass}' -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > db_data.sql
+                        eval mysqldump --quick --single-transaction --compress --no-tablespaces -u ${export_db_user} -p'${export_db_pass}' -P3337 -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING --no-create-info -v | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' | sed '/enable the sandbox mode/d' > db_data.sql
                     else
                         echo "🏰 Exporting the Database without SSH Tunnel... DB Export will happen directly on the Remote Server"
                         # Dump the database structure without data
