@@ -238,7 +238,11 @@ done
 
 # Refresh Permalinks & Clear All Caches
 while true; do
-    read -p "🚧 Refresh Permalinks & Clear All Caches? 🚧? (y/n)" yn
+    if [ "$skip_cache_refresh" != "true" ]; then
+        read -p "🚧 Refresh Permalinks & Clear All Caches? 🚧? (y/n)" yn
+    else
+        yn="n"
+    fi
     case $yn in
         [Yy]* )
             script_start_time=$(date +%s);
