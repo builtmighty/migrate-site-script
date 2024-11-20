@@ -58,11 +58,13 @@ while true; do
                         mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p"${export_db_pass}" -P3337 -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' | sed '/enable the sandbox mode/d' > ${export_db_filename}
                     else
                         echo "🏰 Exporting the Database without SSH Tunnel... DB Export will happen directly on the Remote Server"
-                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' | sed '/enable the sandbox mode/d' > ${export_db_filename}"
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} > ${export_db_filename}"
                         echo "Copying the database file to the local machine.."
                         rsync -avz --ignore-existing -e "ssh -i${remote_ssh_key} -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root}/${export_db_filename} /root/migrate-site-script/
                         echo "Removing the file from the remote machine for safety.."
                         ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && rm ${export_db_filename}"
+                        echo "Running sed commands on the local database dump file.."
+                        sed -i -e 's/DEFINER=[^*]*\*/\*/g' -e 's/SQL SECURITY DEFINER//g' -e '/enable the sandbox mode/d' /root/migrate-site-script/${export_db_filename}
                     fi
                 else
                     if [ $db_ssh_tunnels == "true" ]; then
@@ -80,15 +82,20 @@ while true; do
                         ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} > db_structure.sql"
                         # Dump the data excluding specified tables
                         printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
-                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} | sed 's/DEFINER=[^*]*\*/\*/g' | sed 's/SQL SECURITY DEFINER//g' > db_data.sql"
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} > db_data.sql"
+                        # Copy the files to the local machine
                         echo "Copying the database files to the local machine.."
                         rsync -avz --ignore-existing -e "ssh -i${remote_ssh_key} -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
                             --include="db_structure.sql" \
                             --include="db_data.sql" \
                             --exclude="*" \
                         ${remote_ssh_user}@${remote_ssh_host}:${remote_ssh_web_root}/ /root/migrate-site-script/
+                        # Remove the files from the remote machine for safety
                         echo "Removing the files from the remote machine for safety.."
                         ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host}  "cd $remote_ssh_web_root && rm db_structure.sql && rm db_data.sql"
+                        # Run sed commands on the local database dump file
+                        echo "Running sed commands on the local database data dump file.."
+                        sed -i -e 's/DEFINER=[^*]*\*/\*/g' -e 's/SQL SECURITY DEFINER//g' -e '/enable the sandbox mode/d' /root/migrate-site-script/db_data.sql
                     fi
 
                     # Combine the structure and data dumps
