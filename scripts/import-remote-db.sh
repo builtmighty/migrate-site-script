@@ -79,10 +79,10 @@ while true; do
                         echo "🏰 Exporting the Database without SSH Tunnel... DB Export will happen directly on the Remote Server"
                         # Dump the database structure without data
                         printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Structure Export Started... \n\n" && \
-                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} > db_structure.sql"
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} --no-data > db_structure.sql"
                         # Dump the data excluding specified tables
                         printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏬ Remote DB Data Export Started... \n\n";
-                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} > db_data.sql"
+                        ssh -i${remote_ssh_key} -p ${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${remote_ssh_user}@${remote_ssh_host} "cd $remote_ssh_web_root && mysqldump --quick --single-transaction --compress --no-tablespaces -v -u ${export_db_user} -p'${export_db_pass}' -P${export_db_port} -h 127.0.0.1 ${export_db_name} $IGNORE_TABLES_STRING > db_data.sql"
                         # Copy the files to the local machine
                         echo "Copying the database files to the local machine.."
                         rsync -avz --ignore-existing -e "ssh -i${remote_ssh_key} -p${remote_ssh_port} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
