@@ -26,6 +26,12 @@ export reset;
 # Import .env.
 export $(grep -v '^#' .env | xargs);
 
+# Check if migration should be skipped
+if [ "$skip_migrate_website" = "true" ]; then
+    echo "${yellow}⏭️  Skipping website migration (skip_migrate_website is set to true)${reset}"
+    exit 0
+fi
+
 echo "Port:"$export_db_port
 echo "Host:"$export_db_host
 
