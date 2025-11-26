@@ -129,3 +129,4 @@
 - `skip_app_config`: Skip the step that updates the app/platform configuration (Default: *false*)
 - `skip_db_import`: Skip the step to migrate the database from the remote server (Default: *false*)
 - `skip_file_sync`: Skip the step to sync files from the remote server (Default: *false*)
+- `skip_cache_refresh`: Skip the step to refresh permalinks and clear all caches (Default: *false*)
