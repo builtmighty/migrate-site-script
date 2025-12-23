@@ -126,8 +126,8 @@ while true; do
                 START TRANSACTION;' ${export_db_filename};
                 echo -e "SET unique_checks=1;\nSET foreign_key_checks=1;\nCOMMIT;" >> ${export_db_filename};
 
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --ssl-mode=PREFERRED --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql --ssl-mode=PREFERRED -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && pv ${export_db_filename} | mysql --ssl-mode=PREFERRED -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name}  &&  \
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --skip-ssl --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql --skip-ssl -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && pv ${export_db_filename} | mysql --skip-ssl -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name}  &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🥳 Database Migration Complete! \n\n"; break;
 
             break;;
