@@ -125,6 +125,8 @@
 - `wp_search_replace_exclude_file_path` : Enter the path to the file containing the list of tables to exclude from the WP Search Replace process if the platform is set to `wordpress`
 
 ### Migration Steps (Skip if needed):
+- `skip_migrate_website`: Skip the entire website migration process (Default: *false*)
 - `skip_app_config`: Skip the step that updates the app/platform configuration (Default: *false*)
 - `skip_db_import`: Skip the step to migrate the database from the remote server (Default: *false*)
 - `skip_file_sync`: Skip the step to sync files from the remote server (Default: *false*)
+- `skip_cache_refresh`: Skip the step to refresh permalinks and clear all caches (Default: *false*)
