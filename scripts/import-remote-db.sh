@@ -112,15 +112,22 @@ while true; do
                     kill -9 $SSH_TUNNEL_PID
                 fi
 
-                # Prepare optimized import settings (applied at runtime - no file modification needed)
-                echo "Preparing database import with optimized settings...
+                # Improve the Import Process by adding the following to the SQL file:
+                echo "Optimizing the SQL file for Quicker Import...
                 - autocommit=0;
                 - unique_checks=0;
                 - foreign_key_checks=0;"
+                sed -i '1i\
+                SET GLOBAL net_buffer_length = 1000000;\
+                SET GLOBAL max_allowed_packet = 1000000000;\
+                SET autocommit=0;\
+                SET unique_checks=0;\
+                SET foreign_key_checks=0;\
+                START TRANSACTION;' ${export_db_filename};
+                echo -e "SET unique_checks=1;\nSET foreign_key_checks=1;\nCOMMIT;" >> ${export_db_filename};
 
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⛔ Deleting all tables from the Database ${red}${import_db_name}${reset} in preparation for a fresh DB Import ... \n\n" && echo "SET FOREIGN_KEY_CHECKS = 0;" $(mysqldump --skip-ssl --add-drop-table --no-tablespaces --no-data -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} | grep 'DROP TABLE') "SET FOREIGN_KEY_CHECKS = 1;" | mysql --skip-ssl -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} &&  \
-                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database with optimizations... \n\n" && \
-                (echo "SET GLOBAL net_buffer_length = 1000000; SET GLOBAL max_allowed_packet = 1000000000; SET autocommit=0; SET unique_checks=0; SET foreign_key_checks=0; START TRANSACTION;" && pv ${export_db_filename} && echo "SET unique_checks=1; SET foreign_key_checks=1; COMMIT;") | mysql --skip-ssl -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name} && \
+                printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> ⏫ Importing Database ... \n\n" && pv ${export_db_filename} | mysql --skip-ssl -h${import_db_host} -u ${import_db_user} -p${import_db_pass} ${import_db_name}  &&  \
                 printf "\n [$(TZ=America/Detroit date +'%x %X %Z')] >>>> 🥳 Database Migration Complete! \n\n"; break;
 
             break;;
